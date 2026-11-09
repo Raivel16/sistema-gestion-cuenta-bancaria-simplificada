@@ -136,4 +136,10 @@ async function transferir({ cuentaOrigen, cuentaDestino, monto }) {
   };
 }
 
-module.exports = { ErrorNegocio, obtenerCuenta, depositar, retirar, transferir };
+// Historial: últimos movimientos donde la cuenta es origen o destino.
+async function obtenerHistorial(id, limite = 20) {
+  const cuenta = await obtenerCuenta(id);
+  return movimientoRepository.listarPorCuenta(cuenta.numero, limite);
+}
+
+module.exports = { ErrorNegocio, obtenerCuenta, depositar, retirar, transferir, obtenerHistorial };

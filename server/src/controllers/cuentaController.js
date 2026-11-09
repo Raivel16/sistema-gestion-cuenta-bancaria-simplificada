@@ -49,4 +49,13 @@ async function transferir(req, res) {
   }
 }
 
-module.exports = { obtenerCuenta, depositar, retirar, transferir };
+async function obtenerHistorial(req, res) {
+  try {
+    const movimientos = await cuentaService.obtenerHistorial(req.params.id);
+    res.status(200).json({ ok: true, movimientos });
+  } catch (error) {
+    responderError(res, error);
+  }
+}
+
+module.exports = { obtenerCuenta, depositar, retirar, transferir, obtenerHistorial };
