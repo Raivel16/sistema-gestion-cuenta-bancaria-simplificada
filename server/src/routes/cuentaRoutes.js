@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.post('/deposito', cuentaController.depositar);
 router.post('/retiro', cuentaController.retirar);
+router.post('/transferencia', cuentaController.transferir);
 router.get('/:id', cuentaController.obtenerCuenta);
 
 module.exports = router;
