@@ -40,4 +40,13 @@ async function retirar(req, res) {
   }
 }
 
-module.exports = { obtenerCuenta, depositar, retirar, responderError };
+async function transferir(req, res) {
+  try {
+    const resultado = await cuentaService.transferir(req.body);
+    res.status(201).json({ ok: true, mensaje: 'Transferencia realizada', ...resultado });
+  } catch (error) {
+    responderError(res, error);
+  }
+}
+
+module.exports = { obtenerCuenta, depositar, retirar, transferir };

@@ -1,6 +1,8 @@
 /**
  * Servicio de cuentas: reglas de negocio y validaciones bancarias.
  */
+const mongoose = require('mongoose');
+const { admiteTransacciones } = require('../config/database');
 const cuentaRepository = require('../repositories/cuentaRepository');
 const movimientoRepository = require('../repositories/movimientoRepository');
 
@@ -72,4 +74,66 @@ async function retirar({ cuenta: numero, monto }) {
   }
 }
 
-module.exports = { ErrorNegocio, obtenerCuenta, depositar, retirar };
+// Con replica set: débito, crédito y movimiento se confirman juntos en una transacción de MongoDB.
+async function transferirConTransaccion(origen, destino, monto) {
+  const session = await mongoose.startSession();
+  try {
+    let movimiento;
+    await session.withTransaction(async () => {
+      const debitada = await cuentaRepository.actualizarSaldo(origen, -monto, session);
+      if (!debitada) throw new ErrorNegocio('Saldo insuficiente', 400);
+      await cuentaRepository.actualizarSaldo(destino, monto, session);
+      movimiento = await movimientoRepository.crear(
+        { tipo: 'transferencia', monto, cuentaOrigen: origen, cuentaDestino: destino },
+        session
+      );
+    });
+    return movimiento;
+  } finally {
+    await session.endSession();
+  }
+}
+
+// Sin replica set (MongoDB standalone): el débito es condicional y atómico; si falla el
+// crédito o el registro, se deshacen los pasos ya realizados para no perder dinero.
+async function transferirConCompensacion(origen, destino, monto) {
+  const debitada = await cuentaRepository.actualizarSaldo(origen, -monto);
+  if (!debitada) throw new ErrorNegocio('Saldo insuficiente', 400);
+
+  let acreditada = false;
+  try {
+    await cuentaRepository.actualizarSaldo(destino, monto);
+    acreditada = true;
+    return await movimientoRepository.crear({
+      tipo: 'transferencia',
+      monto,
+      cuentaOrigen: origen,
+      cuentaDestino: destino,
+    });
+  } catch (error) {
+    if (acreditada) await cuentaRepository.actualizarSaldo(destino, -monto);
+    await cuentaRepository.actualizarSaldo(origen, monto);
+    throw error;
+  }
+}
+
+// Transferencia: valida las reglas y mueve el dinero entre dos cuentas.
+async function transferir({ cuentaOrigen, cuentaDestino, monto }) {
+  validarMonto(monto);
+  const origen = await buscarCuentaExistente(cuentaOrigen, 'Cuenta de origen');
+  const destino = await buscarCuentaExistente(cuentaDestino, 'Cuenta de destino');
+  if (origen.numero === destino.numero) {
+    throw new ErrorNegocio('La cuenta de destino debe ser distinta a la de origen', 400);
+  }
+
+  const movimiento = admiteTransacciones()
+    ? await transferirConTransaccion(origen.numero, destino.numero, monto)
+    : await transferirConCompensacion(origen.numero, destino.numero, monto);
+
+  return {
+    cuenta: await cuentaRepository.buscarPorNumero(origen.numero),
+    movimiento,
+  };
+}
+
+module.exports = { ErrorNegocio, obtenerCuenta, depositar, retirar, transferir };
