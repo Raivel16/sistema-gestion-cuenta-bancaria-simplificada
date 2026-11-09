@@ -7,6 +7,7 @@ const cuentaController = require('../controllers/cuentaController');
 const router = express.Router();
 
 router.post('/deposito', cuentaController.depositar);
+router.post('/retiro', cuentaController.retirar);
 router.get('/:id', cuentaController.obtenerCuenta);
 
 module.exports = router;
