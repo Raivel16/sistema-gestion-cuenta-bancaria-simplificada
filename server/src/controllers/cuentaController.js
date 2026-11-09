@@ -22,4 +22,13 @@ async function obtenerCuenta(req, res) {
   }
 }
 
-module.exports = { obtenerCuenta };
+async function depositar(req, res) {
+  try {
+    const resultado = await cuentaService.depositar(req.body);
+    res.status(201).json({ ok: true, mensaje: 'Deposito realizado', ...resultado });
+  } catch (error) {
+    responderError(res, error);
+  }
+}
+
+module.exports = { obtenerCuenta, depositar, responderError };

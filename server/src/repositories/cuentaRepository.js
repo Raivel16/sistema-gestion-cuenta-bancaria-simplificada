@@ -24,7 +24,7 @@ function actualizarSaldo(numero, monto, session) {
   return Cuenta.findOneAndUpdate(
     filtro,
     [{ $set: { saldo: { $round: [{ $add: ['$saldo', monto] }, 2] } } }],
-    { returnDocument: 'after', session: session || undefined }
+    { returnDocument: 'after', updatePipeline: true, session: session || undefined }
   );
 }
 
