@@ -1,0 +1,5 @@
+docs/guias-laboratorio
+node_modules/
+.env
+dist/
+*.log
