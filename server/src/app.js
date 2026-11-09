@@ -7,7 +7,17 @@ const cuentaRoutes = require('./routes/cuentaRoutes');
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+// Permite el frontend en cualquier puerto local (Vite usa 5174, 5175... si el 5173 está ocupado)
+// y, además, la URL indicada en CLIENT_URL.
+const origenLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      const permitido = !origin || origenLocal.test(origin) || origin === process.env.CLIENT_URL;
+      callback(null, permitido);
+    },
+  })
+);
 app.use(express.json());
 
 app.use('/api/cuenta', cuentaRoutes);
