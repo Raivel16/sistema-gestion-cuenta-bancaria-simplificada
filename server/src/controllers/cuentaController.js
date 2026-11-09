@@ -31,4 +31,13 @@ async function depositar(req, res) {
   }
 }
 
-module.exports = { obtenerCuenta, depositar, responderError };
+async function retirar(req, res) {
+  try {
+    const resultado = await cuentaService.retirar(req.body);
+    res.status(201).json({ ok: true, mensaje: 'Retiro realizado', ...resultado });
+  } catch (error) {
+    responderError(res, error);
+  }
+}
+
+module.exports = { obtenerCuenta, depositar, retirar, responderError };

@@ -55,4 +55,21 @@ async function depositar({ cuenta: numero, monto }) {
   }
 }
 
-module.exports = { ErrorNegocio, obtenerCuenta, depositar };
+// Retiro: descuenta el saldo solo si alcanza (la comprobación se hace en la misma
+// operación de MongoDB, por lo que el saldo nunca queda negativo).
+async function retirar({ cuenta: numero, monto }) {
+  validarMonto(monto);
+  const cuenta = await buscarCuentaExistente(numero);
+
+  const actualizada = await cuentaRepository.actualizarSaldo(cuenta.numero, -monto);
+  if (!actualizada) throw new ErrorNegocio('Saldo insuficiente', 400);
+  try {
+    const movimiento = await movimientoRepository.crear({ tipo: 'retiro', monto, cuentaOrigen: cuenta.numero });
+    return { cuenta: actualizada, movimiento };
+  } catch (error) {
+    await cuentaRepository.actualizarSaldo(cuenta.numero, monto);
+    throw error;
+  }
+}
+
+module.exports = { ErrorNegocio, obtenerCuenta, depositar, retirar };
