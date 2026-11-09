@@ -1,8 +1,11 @@
 /**
- * Rutas de /api/cuenta (se completan en las siguientes features).
+ * Rutas de /api/cuenta. Solo asocian cada endpoint con su controlador.
  */
 const express = require('express');
+const cuentaController = require('../controllers/cuentaController');
 
 const router = express.Router();
+
+router.get('/:id', cuentaController.obtenerCuenta);
 
 module.exports = router;
