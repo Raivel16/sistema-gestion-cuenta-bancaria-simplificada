@@ -108,3 +108,19 @@ test('transferencias simultaneas nunca dejan saldo negativo', async () => {
   assert.equal(await saldo('B'), 130);
   assert.ok((await cuentaRepository.buscarPorNumero('A')).saldo >= 0);
 });
+
+test('el historial incluye los titulares de origen y destino de cada transferencia', async () => {
+  await cuentaService.transferir({ cuentaOrigen: 'A', cuentaDestino: 'B', monto: 10 });
+  await cuentaService.depositar({ cuenta: 'A', monto: 5 });
+
+  const deA = await cuentaService.obtenerHistorial('A');
+  const transferencia = deA.find((m) => m.tipo === 'transferencia');
+  assert.equal(transferencia.titularOrigen, 'Ana');
+  assert.equal(transferencia.titularDestino, 'Beto');
+  assert.equal(deA.find((m) => m.tipo === 'deposito').titularDestino, undefined);
+
+  // La cuenta que recibe ve el mismo movimiento, con los mismos nombres.
+  const deB = await cuentaService.obtenerHistorial('B');
+  assert.equal(deB.length, 1);
+  assert.equal(deB[0].titularOrigen, 'Ana');
+});
