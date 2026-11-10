@@ -16,7 +16,7 @@ async function obtenerCuenta(req, res) {
 
 async function depositar(req, res) {
   try {
-    const resultado = await cuentaService.depositar(req.body);
+    const resultado = await cuentaService.depositar({ ...req.body, cuenta: req.cuentaNumero });
     res.status(201).json({ ok: true, mensaje: 'Deposito realizado', ...resultado });
   } catch (error) {
     responderError(res, error);
@@ -25,7 +25,7 @@ async function depositar(req, res) {
 
 async function retirar(req, res) {
   try {
-    const resultado = await cuentaService.retirar(req.body);
+    const resultado = await cuentaService.retirar({ ...req.body, cuenta: req.cuentaNumero });
     res.status(201).json({ ok: true, mensaje: 'Retiro realizado', ...resultado });
   } catch (error) {
     responderError(res, error);
@@ -34,7 +34,7 @@ async function retirar(req, res) {
 
 async function transferir(req, res) {
   try {
-    const resultado = await cuentaService.transferir(req.body);
+    const resultado = await cuentaService.transferir({ ...req.body, cuentaOrigen: req.cuentaNumero });
     res.status(201).json({ ok: true, mensaje: 'Transferencia realizada', ...resultado });
   } catch (error) {
     responderError(res, error);
