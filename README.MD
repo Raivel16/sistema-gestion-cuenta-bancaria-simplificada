@@ -49,7 +49,7 @@ npm run dev               # http://localhost:5173
 | 001-0003 | Carla Mendoza | 2500.00 |
 | 001-0004 | Jorge Quispe | 120.00 |
 
-En la interfaz, escriba el número de cuenta en el recuadro superior y pulse **Consultar** para ver su saldo e historial.
+En la interfaz, la pantalla **Ingresar** muestra las 3 primeras cuentas (001-0001, 001-0002 y 001-0003): elija una para abrirla. **Cerrar sesión** vuelve a esa pantalla. La cuenta 001-0004 solo sirve como destino de transferencias.
 
 ## Endpoints
 
@@ -65,10 +65,10 @@ En la interfaz, escriba el número de cuenta en el recuadro superior y pulse **C
 
 ## Cómo probar una transferencia
 
-1. Ejecute `npm run seed` y abra `http://localhost:5173` con la cuenta `001-0001`.
-2. En **Transferir dinero** escriba el destino `001-0002` y un monto, por ejemplo `75`.
+1. Ejecute `npm run seed` y abra `http://localhost:5173` e ingrese con la cuenta `001-0001`.
+2. Pulse **Transferir** y escriba el destino `001-0002` y un monto, por ejemplo `75`.
 3. El saldo baja de inmediato y el historial muestra "Transferencia enviada".
-4. Consulte `001-0002` en el recuadro superior: su saldo subió en `75` y aparece "Transferencia recibida".
+4. Cierre sesión e ingrese con `001-0002`: su saldo subió en `75` y aparece "Transferencia recibida".
 5. Pruebe un destino inexistente (`999`) o un monto mayor al saldo: se muestra el error y los saldos no cambian.
 
 O por API:
@@ -107,4 +107,4 @@ docs/    Consigna del trabajo práctico
 
 ## Alcance
 
-Según la consigna, el sistema no incluye autenticación ni roles: cualquier cliente puede operar sobre cualquier cuenta. No debe exponerse fuera de un entorno local de demostración.
+El "login" es solo un selector de cuentas de demostración, sin contraseña, y no hay roles: cualquier cliente puede operar sobre cualquier cuenta mediante la API. No debe exponerse fuera de un entorno local de demostración.
