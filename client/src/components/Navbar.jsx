@@ -1,18 +1,8 @@
-import { useState } from 'react'
-
-// Barra superior: nombre de la app y buscador de cuenta.
-function Navbar({ cuentaActiva, onCambiarCuenta, onInicio }) {
-  const [texto, setTexto] = useState(cuentaActiva)
-
-  const manejarEnvio = (e) => {
-    e.preventDefault()
-    const numero = texto.trim()
-    if (numero) onCambiarCuenta(numero)
-  }
-
+// Barra superior: nombre de la app y, con sesión abierta, la cuenta activa y "Cerrar sesión".
+function Navbar({ cuenta, onInicio, onSalir }) {
   return (
     <header className="border-b border-linea bg-white">
-      <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
         <button
           type="button"
           onClick={onInicio}
@@ -22,25 +12,23 @@ function Navbar({ cuentaActiva, onCambiarCuenta, onInicio }) {
           Mi Cuenta Bancaria
         </button>
 
-        <form onSubmit={manejarEnvio} className="flex gap-2">
-          <label htmlFor="cuenta-activa" className="sr-only">
-            Número de cuenta
-          </label>
-          <input
-            id="cuenta-activa"
-            type="text"
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            placeholder="Ej. 001-0001"
-            className="w-full min-w-0 rounded-md border border-linea bg-white px-3 py-2 text-sm text-tinta placeholder-suave focus:border-acento sm:w-44"
-          />
-          <button
-            type="submit"
-            className="shrink-0 rounded-md border border-linea px-4 py-2 text-sm font-medium text-tinta transition-colors hover:bg-fondo"
-          >
-            Cambiar cuenta
-          </button>
-        </form>
+        {onSalir && (
+          <div className="flex items-center gap-3">
+            {cuenta && (
+              <p className="hidden text-right text-sm leading-tight sm:block">
+                <span className="block font-medium text-tinta">{cuenta.titular}</span>
+                <span className="block font-mono text-suave">{cuenta.numero}</span>
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={onSalir}
+              className="shrink-0 rounded-md border border-linea px-4 py-2 text-sm font-medium text-tinta transition-colors hover:bg-fondo"
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        )}
       </div>
     </header>
   )
