@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Navbar from './components/Navbar'
+import Login from './components/Login'
 import SaldoCard from './components/SaldoCard'
 import MenuOperaciones from './components/MenuOperaciones'
 import PantallaOperacion from './components/PantallaOperacion'
@@ -19,7 +20,8 @@ const PANTALLAS = {
 function App() {
   // "inicio", "deposito", "retiro" o "transferencia": decide qué pantalla se muestra.
   const [vista, setVista] = useState('inicio')
-  const [cuentaActiva, setCuentaActiva] = useState('001-0001')
+  // Número de la cuenta con sesión abierta; null mientras no se haya ingresado.
+  const [cuentaActiva, setCuentaActiva] = useState(null)
   const [cuenta, setCuenta] = useState(null)
   const [movimientos, setMovimientos] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -30,6 +32,8 @@ function App() {
 
   // Carga inicial y sincronización: al abrir la app, al cambiar de cuenta y después de cada operación.
   useEffect(() => {
+    if (!cuentaActiva) return
+
     let vigente = true
 
     async function cargarDatos() {
@@ -68,8 +72,16 @@ function App() {
     setVista(nuevaVista)
   }
 
-  const cambiarCuenta = (numero) => {
+  const ingresar = (numero) => {
+    setCargando(true)
     setCuentaActiva(numero)
+    irAInicio()
+  }
+
+  const cerrarSesion = () => {
+    setCuentaActiva(null)
+    setCuenta(null)
+    setMovimientos([])
     irAInicio()
   }
 
@@ -99,12 +111,18 @@ function App() {
 
   return (
     <div className="min-h-screen bg-fondo">
-      <Navbar cuentaActiva={cuentaActiva} onCambiarCuenta={cambiarCuenta} onInicio={irAInicio} />
+      <Navbar
+        cuenta={cuenta}
+        onInicio={cuentaActiva ? irAInicio : undefined}
+        onSalir={cuentaActiva ? cerrarSesion : undefined}
+      />
 
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-6">
         <Mensaje mensaje={mensaje} onCerrar={() => setMensaje(null)} />
 
-        {vista === 'inicio' ? (
+        {!cuentaActiva ? (
+          <Login onIngresar={ingresar} />
+        ) : vista === 'inicio' ? (
           <>
             <div className="grid gap-6 lg:grid-cols-5">
               <div className="lg:col-span-3">
