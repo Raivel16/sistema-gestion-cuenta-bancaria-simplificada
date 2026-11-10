@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const cuentaRoutes = require('./routes/cuentaRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(
 );
 app.use(express.json());
 
+app.use('/api/auth', authRoutes);
 app.use('/api/cuenta', cuentaRoutes);
 
 // Cualquier otra ruta no existe.
