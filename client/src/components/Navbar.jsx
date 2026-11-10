@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
-// Encabezado con el nombre de la app y el buscador de cuenta.
-function Navbar({ cuentaActiva, onCambiarCuenta }) {
+// Barra superior: nombre de la app y buscador de cuenta.
+function Navbar({ cuentaActiva, onCambiarCuenta, onInicio }) {
   const [texto, setTexto] = useState(cuentaActiva)
 
   const manejarEnvio = (e) => {
@@ -11,9 +11,16 @@ function Navbar({ cuentaActiva, onCambiarCuenta }) {
   }
 
   return (
-    <header className="bg-indigo-700 text-white shadow-md">
-      <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-bold tracking-tight">🏦 Mi Cuenta Bancaria</h1>
+    <header className="border-b border-linea bg-white">
+      <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="button"
+          onClick={onInicio}
+          className="flex items-center gap-2 text-left text-lg font-semibold tracking-tight text-tinta"
+        >
+          <span className="h-3 w-3 rounded-sm bg-acento" aria-hidden="true" />
+          Mi Cuenta Bancaria
+        </button>
 
         <form onSubmit={manejarEnvio} className="flex gap-2">
           <label htmlFor="cuenta-activa" className="sr-only">
@@ -25,13 +32,13 @@ function Navbar({ cuentaActiva, onCambiarCuenta }) {
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             placeholder="Ej. 001-0001"
-            className="w-full min-w-0 rounded-lg border border-indigo-400 bg-indigo-600 px-3 py-2 text-sm text-white placeholder-indigo-200 focus:border-white focus:outline-none sm:w-48"
+            className="w-full min-w-0 rounded-md border border-linea bg-white px-3 py-2 text-sm text-tinta placeholder-suave focus:border-acento sm:w-44"
           />
           <button
             type="submit"
-            className="shrink-0 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
+            className="shrink-0 rounded-md border border-linea px-4 py-2 text-sm font-medium text-tinta transition-colors hover:bg-fondo"
           >
-            Consultar
+            Cambiar cuenta
           </button>
         </form>
       </div>
