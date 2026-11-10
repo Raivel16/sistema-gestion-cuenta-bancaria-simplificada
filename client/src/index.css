@@ -26,9 +26,12 @@ body {
   color: var(--color-tinta);
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-acento);
-  outline-offset: 2px;
+/* En la capa base, para que utilidades como outline-none puedan anularla. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 2px;
+  }
 }
 
 /* Cifras de la tarjeta: efecto grabado (relieve con sombra clara y oscura). */
