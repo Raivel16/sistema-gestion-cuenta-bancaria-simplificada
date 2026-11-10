@@ -42,16 +42,24 @@ npm run dev               # http://localhost:5173
 
 `npm run seed` (en `server/`) crea o restablece estas cuentas y sus movimientos de ejemplo. Puede ejecutarse las veces que se quiera sin generar duplicados.
 
-| Cuenta | Titular | Saldo inicial |
-|---|---|---|
-| 001-0001 | Ana Torres | 1500.00 |
-| 001-0002 | Luis Ramirez | 800.50 |
-| 001-0003 | Carla Mendoza | 2500.00 |
-| 001-0004 | Jorge Quispe | 120.00 |
+| Cuenta | Titular | Saldo inicial | Usuario | PIN |
+|---|---|---|---|---|
+| 001-0001 | Ana Torres | 1500.00 | `ana` | `1111` |
+| 001-0002 | Luis Ramirez | 800.50 | `luis` | `2222` |
+| 001-0003 | Carla Mendoza | 2500.00 | `carla` | `3333` |
+| 001-0004 | Jorge Quispe | 120.00 | `jorge` | `4444` |
 
-En la interfaz, la pantalla **Ingresar** muestra las 3 primeras cuentas (001-0001, 001-0002 y 001-0003): elija una para abrirla. **Cerrar sesión** vuelve a esa pantalla. La cuenta 001-0004 solo sirve como destino de transferencias.
+En la interfaz, ingrese con usuario y PIN de 4 dígitos (por ejemplo `ana` / `1111`). Cada usuario solo ve y opera su propia cuenta. **Cerrar sesión** vuelve a la pantalla de ingreso. Los PIN se guardan con hash (scrypt) y tras 5 intentos fallidos el usuario se bloquea 1 minuto.
 
 ## Endpoints
+
+**Autenticación:** todas las rutas de `/api/cuenta` requieren la cabecera `Authorization: Bearer <token>`, que se obtiene al iniciar sesión. Las sesiones duran 1 hora y viven en memoria (al reiniciar el servidor hay que volver a ingresar). Sin sesión responden 401; si se indica una cuenta distinta a la de la sesión, 403.
+
+| Método | Ruta | Cuerpo | Respuesta |
+|---|---|---|---|
+| POST | `/api/auth/login` | `{ "usuario": "ana", "pin": "1111" }` | 200 (token y cuenta) / 400 / 401 / 429 |
+| POST | `/api/auth/logout` | — | 200 / 401 |
+| GET | `/api/cuenta/destino/:numero` | — | 200 (número y titular) / 404 |
 
 | Método | Ruta | Cuerpo | Respuesta |
 |---|---|---|---|
@@ -65,17 +73,24 @@ En la interfaz, la pantalla **Ingresar** muestra las 3 primeras cuentas (001-000
 
 ## Cómo probar una transferencia
 
-1. Ejecute `npm run seed` y abra `http://localhost:5173` e ingrese con la cuenta `001-0001`.
-2. Pulse **Transferir** y escriba el destino `001-0002` y un monto, por ejemplo `75`.
-3. El saldo baja de inmediato y el historial muestra "Transferencia enviada".
-4. Cierre sesión e ingrese con `001-0002`: su saldo subió en `75` y aparece "Transferencia recibida".
-5. Pruebe un destino inexistente (`999`) o un monto mayor al saldo: se muestra el error y los saldos no cambian.
+1. Ejecute `npm run seed`, abra `http://localhost:5173` e ingrese con `ana` / `1111`.
+2. Pulse **Transferir**, escriba el destino `001-0002` y un monto, por ejemplo `75`, y pulse **Continuar**.
+3. La pantalla muestra el **titular del destino** (Luis Ramirez) para verificarlo; pulse **Confirmar transferencia**.
+4. El saldo baja de inmediato y el historial muestra "Transferencia enviada".
+5. Cierre sesión e ingrese con `luis` / `2222`: su saldo subió en `75` y aparece "Transferencia recibida".
+6. Pruebe un destino inexistente (`999`) o un monto mayor al saldo: se muestra el error y los saldos no cambian.
 
 O por API:
 
 ```bash
-curl -X POST http://localhost:3000/api/cuenta/transferencia \
+# 1. Iniciar sesión y copiar el "token" de la respuesta
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
+  -d '{"usuario":"ana","pin":"1111"}'
+
+# 2. Transferir usando ese token
+curl -X POST http://localhost:3000/api/cuenta/transferencia \
+  -H "Content-Type: application/json" -H "Authorization: Bearer <token>" \
   -d '{"cuentaOrigen":"001-0001","cuentaDestino":"001-0002","monto":75}'
 ```
 
@@ -105,6 +120,6 @@ client/  React + Vite (src/components, services/api.js, utils)
 docs/    Consigna del trabajo práctico
 ```
 
-## Alcance
+## Alcance y limitaciones de seguridad
 
-El "login" es solo un selector de cuentas de demostración, sin contraseña, y no hay roles: cualquier cliente puede operar sobre cualquier cuenta mediante la API. No debe exponerse fuera de un entorno local de demostración.
+El ingreso (usuario y PIN) es un control sencillo pensado para la demostración, no para producción: sesiones en memoria, sin HTTPS, sin renovación de tokens y sin registro de usuarios. La consulta del titular de una cuenta destino (`/api/cuenta/destino/:numero`) muestra el nombre completo a cualquier usuario con sesión, tal como pide el flujo de confirmación; un sistema real limitaría esas consultas y enmascararía parte del nombre.

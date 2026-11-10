@@ -30,6 +30,23 @@ function App() {
   // Cada vez que cambia, el useEffect vuelve a pedir los datos al servidor.
   const [version, setVersion] = useState(0)
 
+  // Limpia todo el estado de la sesión y vuelve a la pantalla de ingreso.
+  const limpiarSesion = (aviso = null) => {
+    api.guardarToken('')
+    setCuentaActiva(null)
+    setCuenta(null)
+    setMovimientos([])
+    setVista('inicio')
+    setMensaje(aviso)
+  }
+
+  // Si el servidor responde 401, la sesión venció: se vuelve al ingreso.
+  const sesionVencida = (error) => {
+    if (error.status !== 401) return false
+    limpiarSesion({ tipo: 'error', texto: 'Su sesión expiró. Ingrese nuevamente.' })
+    return true
+  }
+
   // Carga inicial y sincronización: al abrir la app, al cambiar de cuenta y después de cada operación.
   useEffect(() => {
     if (!cuentaActiva) return
@@ -48,6 +65,7 @@ function App() {
         setMovimientos(datosHistorial.movimientos)
       } catch (error) {
         if (!vigente) return
+        if (sesionVencida(error)) return
         setCuenta(null)
         setMovimientos([])
         setMensaje({ tipo: 'error', texto: error.message })
@@ -72,18 +90,33 @@ function App() {
     setVista(nuevaVista)
   }
 
-  const ingresar = (numero) => {
-    setCargando(true)
-    setCuentaActiva(numero)
-    irAInicio()
+  // Devuelve un texto de error si el ingreso falla; si sale bien abre la cuenta.
+  const ingresar = async (usuario, pin) => {
+    setProcesando(true)
+    try {
+      const respuesta = await api.iniciarSesion(usuario, pin)
+      api.guardarToken(respuesta.token)
+      setCargando(true)
+      setMensaje(null)
+      setVista('inicio')
+      setCuentaActiva(respuesta.cuenta.numero)
+      return ''
+    } catch (error) {
+      return error.message
+    } finally {
+      setProcesando(false)
+    }
   }
 
-  const cerrarSesion = () => {
-    setCuentaActiva(null)
-    setCuenta(null)
-    setMovimientos([])
-    irAInicio()
+  const cerrarSesion = async () => {
+    try {
+      await api.cerrarSesion()
+    } catch {
+      // Aunque el servidor no responda, la sesión se cierra en el navegador.
+    }
+    limpiarSesion()
   }
+
 
   // Ejecuta una operación de la API. Si sale bien, vuelve al inicio con el saldo actualizado.
   const ejecutarOperacion = async (accion) => {
@@ -96,7 +129,7 @@ function App() {
       setVista('inicio')
       return true
     } catch (error) {
-      setMensaje({ tipo: 'error', texto: error.message })
+      if (!sesionVencida(error)) setMensaje({ tipo: 'error', texto: error.message })
       return false
     } finally {
       setProcesando(false)
@@ -121,7 +154,7 @@ function App() {
         <Mensaje mensaje={mensaje} onCerrar={() => setMensaje(null)} />
 
         {!cuentaActiva ? (
-          <Login onIngresar={ingresar} />
+          <Login onIngresar={ingresar} procesando={procesando} />
         ) : vista === 'inicio' ? (
           <>
             <div className="grid gap-6 lg:grid-cols-5">

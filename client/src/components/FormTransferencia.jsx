@@ -1,13 +1,20 @@
 import { useState } from 'react'
 import CampoMonto from './CampoMonto'
+import { formatoMoneda } from '../utils/formato'
+import * as api from '../services/api'
 
-// Formulario de transferencia. El padre recibe (cuentaDestino, monto) mediante onSubmit.
+// Transferencia en dos pasos: 1) datos y 2) confirmación mostrando el titular del destino.
+// El padre recibe (cuentaDestino, monto) mediante onSubmit.
 function FormTransferencia({ cuentaOrigen, onSubmit, procesando, deshabilitado }) {
   const [destino, setDestino] = useState('')
   const [monto, setMonto] = useState('')
   const [error, setError] = useState('')
+  const [verificando, setVerificando] = useState(false)
+  // Datos del destino ya verificados ({ numero, titular }); null mientras se llenan los datos.
+  const [titularDestino, setTitularDestino] = useState(null)
 
-  const manejarEnvio = async (e) => {
+  // Paso 1: valida los datos y consulta a quién pertenece la cuenta de destino.
+  const continuar = async (e) => {
     e.preventDefault()
     const valor = Number(monto)
     if (!destino.trim()) {
@@ -23,15 +30,69 @@ function FormTransferencia({ cuentaOrigen, onSubmit, procesando, deshabilitado }
       return
     }
     setError('')
-    const exito = await onSubmit(destino.trim(), valor)
-    if (exito) {
-      setDestino('')
-      setMonto('')
+    setVerificando(true)
+    try {
+      const respuesta = await api.obtenerDestino(destino.trim())
+      setTitularDestino(respuesta.cuenta)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setVerificando(false)
     }
   }
 
+  // Paso 2: el usuario confirma que el titular es el correcto.
+  const confirmar = async () => {
+    const exito = await onSubmit(titularDestino.numero, Number(monto))
+    if (exito) {
+      setDestino('')
+      setMonto('')
+      setTitularDestino(null)
+    }
+  }
+
+  if (titularDestino) {
+    return (
+      <div>
+        <p className="text-sm text-suave">Revise los datos antes de confirmar.</p>
+
+        <dl className="mt-3 divide-y divide-linea rounded-lg border border-linea text-sm">
+          <div className="flex items-baseline justify-between gap-4 px-4 py-3">
+            <dt className="text-suave">Titular del destino</dt>
+            <dd className="text-right text-base font-semibold text-tinta">{titularDestino.titular}</dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-4 px-4 py-3">
+            <dt className="text-suave">Cuenta de destino</dt>
+            <dd className="font-mono text-tinta">{titularDestino.numero}</dd>
+          </div>
+          <div className="flex items-baseline justify-between gap-4 px-4 py-3">
+            <dt className="text-suave">Monto a transferir</dt>
+            <dd className="text-lg font-semibold text-tinta">{formatoMoneda(Number(monto))}</dd>
+          </div>
+        </dl>
+
+        <button
+          type="button"
+          onClick={confirmar}
+          disabled={procesando || deshabilitado}
+          className="mt-5 w-full rounded-lg bg-acento px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-acento-osc disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {procesando ? 'Procesando…' : 'Confirmar transferencia'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setTitularDestino(null)}
+          disabled={procesando}
+          className="mt-2 w-full rounded-lg border border-linea px-4 py-3 text-base font-medium text-tinta transition-colors hover:bg-fondo disabled:opacity-50"
+        >
+          Corregir datos
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <form onSubmit={manejarEnvio} noValidate>
+    <form onSubmit={continuar} noValidate>
       <label htmlFor="cuenta-destino" className="block text-sm font-medium text-tinta">
         Cuenta de destino
       </label>
@@ -53,10 +114,10 @@ function FormTransferencia({ cuentaOrigen, onSubmit, procesando, deshabilitado }
 
       <button
         type="submit"
-        disabled={procesando || deshabilitado}
+        disabled={verificando || deshabilitado}
         className="mt-5 w-full rounded-lg bg-acento px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-acento-osc disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {procesando ? 'Procesando…' : 'Confirmar transferencia'}
+        {verificando ? 'Verificando cuenta…' : 'Continuar'}
       </button>
     </form>
   )
