@@ -3,15 +3,7 @@
  * y devuelve la respuesta JSON con el código de estado adecuado.
  */
 const cuentaService = require('../services/cuentaService');
-
-// Traduce un error a respuesta HTTP. Los errores inesperados no exponen detalles.
-function responderError(res, error) {
-  if (error.status) {
-    return res.status(error.status).json({ ok: false, mensaje: error.message });
-  }
-  console.error(error);
-  return res.status(500).json({ ok: false, mensaje: 'Error interno del servidor' });
-}
+const { responderError } = require('./respuestas');
 
 async function obtenerCuenta(req, res) {
   try {
@@ -58,4 +50,13 @@ async function obtenerHistorial(req, res) {
   }
 }
 
-module.exports = { obtenerCuenta, depositar, retirar, transferir, obtenerHistorial };
+async function obtenerDestino(req, res) {
+  try {
+    const cuenta = await cuentaService.obtenerDestino(req.params.numero);
+    res.status(200).json({ ok: true, cuenta });
+  } catch (error) {
+    responderError(res, error);
+  }
+}
+
+module.exports = { obtenerDestino, obtenerCuenta, depositar, retirar, transferir, obtenerHistorial };

@@ -142,4 +142,11 @@ async function obtenerHistorial(id, limite = 20) {
   return movimientoRepository.listarPorCuenta(cuenta.numero, limite);
 }
 
-module.exports = { ErrorNegocio, obtenerCuenta, depositar, retirar, transferir, obtenerHistorial };
+// Datos públicos de una cuenta destino: solo número y titular (para confirmar antes de transferir).
+async function obtenerDestino(numero) {
+  const cuenta = await cuentaRepository.buscarPorNumero(String(numero).trim());
+  if (!cuenta) throw new ErrorNegocio('Cuenta de destino no encontrada', 404);
+  return { numero: cuenta.numero, titular: cuenta.titular };
+}
+
+module.exports = { ErrorNegocio, obtenerDestino, obtenerCuenta, depositar, retirar, transferir, obtenerHistorial };
