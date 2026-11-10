@@ -139,7 +139,19 @@ async function transferir({ cuentaOrigen, cuentaDestino, monto }) {
 // Historial: últimos movimientos donde la cuenta es origen o destino.
 async function obtenerHistorial(id, limite = 20) {
   const cuenta = await obtenerCuenta(id);
-  return movimientoRepository.listarPorCuenta(cuenta.numero, limite);
+  const movimientos = await movimientoRepository.listarPorCuenta(cuenta.numero, limite);
+
+  // Se agrega el nombre del titular de cada cuenta involucrada para mostrar de dónde viene
+  // o hacia dónde va cada transferencia.
+  const numeros = [...new Set(movimientos.flatMap((m) => [m.cuentaOrigen, m.cuentaDestino]).filter(Boolean))];
+  const cuentas = await cuentaRepository.buscarPorNumeros(numeros);
+  const titulares = Object.fromEntries(cuentas.map((c) => [c.numero, c.titular]));
+
+  return movimientos.map((m) => ({
+    ...m.toObject(),
+    titularOrigen: titulares[m.cuentaOrigen],
+    titularDestino: m.cuentaDestino ? titulares[m.cuentaDestino] : undefined,
+  }));
 }
 
 // Datos públicos de una cuenta destino: solo número y titular (para confirmar antes de transferir).

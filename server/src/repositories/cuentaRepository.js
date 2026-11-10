@@ -17,6 +17,11 @@ function buscarPorUsuario(usuario) {
   return Cuenta.findOne({ usuario }).select('+pinHash');
 }
 
+// Varias cuentas a la vez (para mostrar los titulares en el historial).
+function buscarPorNumeros(numeros) {
+  return Cuenta.find({ numero: { $in: numeros } });
+}
+
 async function buscarPorNumero(numero, session) {
   return Cuenta.findOne({ numero }).session(session || null);
 }
@@ -42,4 +47,4 @@ function guardarCuenta(datos) {
   });
 }
 
-module.exports = { buscarPorIdentificador, buscarPorUsuario, buscarPorNumero, actualizarSaldo, guardarCuenta };
+module.exports = { buscarPorIdentificador, buscarPorUsuario, buscarPorNumero, buscarPorNumeros, actualizarSaldo, guardarCuenta };
