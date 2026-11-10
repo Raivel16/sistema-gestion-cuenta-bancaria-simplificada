@@ -1,6 +1,6 @@
 import { formatoFecha, formatoMoneda } from '../utils/formato'
 
-// Una fila del historial. Decide si el movimiento suma o resta para la cuenta que se consulta.
+// Una fila del extracto. Decide si el movimiento suma o resta para la cuenta que se consulta.
 function MovimientoItem({ movimiento, cuentaActual }) {
   const { tipo, monto, fecha, cuentaOrigen, cuentaDestino } = movimiento
 
@@ -12,18 +12,20 @@ function MovimientoItem({ movimiento, cuentaActual }) {
   if (tipo === 'retiro') titulo = 'Retiro'
   if (esTransferencia) titulo = recibida ? 'Transferencia recibida' : 'Transferencia enviada'
 
+  // En las transferencias se muestra la otra cuenta involucrada.
+  const contraparte = esTransferencia ? (recibida ? cuentaOrigen : cuentaDestino) : null
+
   return (
-    <li className="flex items-center justify-between gap-3 py-3">
+    <li className="flex items-center justify-between gap-4 px-4 py-3">
       <div className="min-w-0">
-        <p className="font-semibold text-slate-800">{titulo}</p>
-        <p className="text-xs text-slate-500">{formatoFecha(fecha)}</p>
-        <p className="truncate text-xs text-slate-500">
-          Origen: {cuentaOrigen}
-          {cuentaDestino && ` → Destino: ${cuentaDestino}`}
+        <p className="font-medium text-tinta">{titulo}</p>
+        <p className="truncate text-sm text-suave">
+          {formatoFecha(fecha)}
+          {contraparte && ` · ${recibida ? 'de' : 'a'} ${contraparte}`}
         </p>
       </div>
-      <span className={`shrink-0 text-right font-bold ${suma ? 'text-green-600' : 'text-red-600'}`}>
-        {suma ? '+' : '-'} {formatoMoneda(monto)}
+      <span className={`shrink-0 text-right font-semibold ${suma ? 'text-acento' : 'text-egreso'}`}>
+        {suma ? '+' : '−'} {formatoMoneda(monto)}
       </span>
     </li>
   )

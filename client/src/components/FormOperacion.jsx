@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import CampoMonto from './CampoMonto'
 
-// Formulario para depositar o retirar. El padre recibe (tipo, monto) mediante onSubmit.
-function FormOperacion({ onSubmit, procesando, deshabilitado }) {
-  const [tipo, setTipo] = useState('deposito')
+// Formulario de depósito o retiro según la prop "tipo". El padre recibe (tipo, monto) en onSubmit.
+function FormOperacion({ tipo, onSubmit, procesando, deshabilitado }) {
   const [monto, setMonto] = useState('')
   const [error, setError] = useState('')
+
+  const esDeposito = tipo === 'deposito'
 
   const manejarEnvio = async (e) => {
     e.preventDefault()
@@ -18,51 +20,21 @@ function FormOperacion({ onSubmit, procesando, deshabilitado }) {
     if (exito) setMonto('')
   }
 
-  const botonTipo = (valor, texto) => (
-    <button
-      type="button"
-      onClick={() => setTipo(valor)}
-      className={`flex-1 rounded-lg px-3 py-2 text-sm font-semibold transition ${
-        tipo === valor ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-      }`}
-    >
-      {texto}
-    </button>
-  )
-
   return (
-    <form onSubmit={manejarEnvio} className="rounded-2xl bg-white p-6 shadow" noValidate>
-      <h2 className="text-lg font-bold text-slate-800">Depósito / Retiro</h2>
-
-      <div className="mt-4 flex gap-2">
-        {botonTipo('deposito', 'Depositar')}
-        {botonTipo('retiro', 'Retirar')}
-      </div>
-
-      <label htmlFor="monto-operacion" className="mt-4 block text-sm font-medium text-slate-700">
-        Monto (S/)
-      </label>
-      <input
-        id="monto-operacion"
-        type="number"
-        inputMode="decimal"
-        step="0.01"
-        min="0"
-        value={monto}
-        onChange={(e) => setMonto(e.target.value)}
-        placeholder="0.00"
-        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-      />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+    <form onSubmit={manejarEnvio} noValidate>
+      <CampoMonto id="monto-operacion" valor={monto} onCambio={setMonto} />
+      {error && (
+        <p role="alert" className="mt-2 text-sm font-medium text-egreso">
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"
         disabled={procesando || deshabilitado}
-        className={`mt-4 w-full rounded-lg px-4 py-2 font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${
-          tipo === 'deposito' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
-        }`}
+        className="mt-5 w-full rounded-lg bg-acento px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-acento-osc disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {procesando ? 'Procesando...' : tipo === 'deposito' ? 'Realizar depósito' : 'Realizar retiro'}
+        {procesando ? 'Procesando…' : esDeposito ? 'Confirmar depósito' : 'Confirmar retiro'}
       </button>
     </form>
   )

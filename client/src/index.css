@@ -1,1 +1,45 @@
 @import "tailwindcss";
+
+/* Paleta de la app: gris frío, tinta grafito y un único verde azulado. */
+@theme {
+  --color-fondo: #edf0f2;
+  --color-tinta: #121c26;
+  --color-suave: #55646f;
+  --color-linea: #d5dbe0;
+  --color-acento: #0b6e63;
+  --color-acento-osc: #095a51;
+  --color-acento-claro: #e3f1ee;
+  --color-egreso: #b4332a;
+  --color-egreso-claro: #f8e8e6;
+  --color-grafito: #17232e;
+}
+
+body {
+  background-color: var(--color-fondo);
+  color: var(--color-tinta);
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background-color: var(--color-acento-claro);
+  color: var(--color-tinta);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-acento);
+  outline-offset: 2px;
+}
+
+/* Cifras de la tarjeta: efecto grabado (relieve con sombra clara y oscura). */
+.grabado {
+  text-shadow:
+    0 1px 0 rgb(255 255 255 / 0.14),
+    0 -1px 1px rgb(0 0 0 / 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
