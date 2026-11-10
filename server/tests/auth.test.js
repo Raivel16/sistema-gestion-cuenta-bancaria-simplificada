@@ -100,3 +100,23 @@ test('tras 5 intentos fallidos el usuario se bloquea (429)', async () => {
   }
   assert.equal((await llamar('/auth/login', { metodo: 'POST', cuerpo: { usuario: 'beto', pin: '2222' } })).status, 429);
 });
+
+test('no se puede debitar una cuenta ajena mezclando los campos "cuenta" y "cuentaOrigen"', async () => {
+  const token = await ingresar('ana', '1111');
+  const { status } = await llamar('/cuenta/transferencia', {
+    metodo: 'POST',
+    token,
+    cuerpo: { cuenta: 'A', cuentaOrigen: 'B', cuentaDestino: 'A', monto: 10 },
+  });
+  assert.equal(status, 403);
+  assert.equal((await Cuenta.findOne({ numero: 'B' })).saldo, 50);
+});
+
+test('retiro y deposito siempre se aplican a la cuenta de la sesion', async () => {
+  const token = await ingresar('ana', '1111');
+  const antes = (await Cuenta.findOne({ numero: 'A' })).saldo;
+  const { status } = await llamar('/cuenta/retiro', { metodo: 'POST', token, cuerpo: { monto: 10 } });
+  assert.equal(status, 201);
+  assert.equal((await Cuenta.findOne({ numero: 'A' })).saldo, antes - 10);
+  assert.equal((await Cuenta.findOne({ numero: 'B' })).saldo, 50);
+});

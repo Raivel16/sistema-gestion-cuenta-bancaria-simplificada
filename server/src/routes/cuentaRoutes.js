@@ -11,10 +11,10 @@ const router = express.Router();
 router.use(autenticar);
 
 router.get('/destino/:numero', cuentaController.obtenerDestino);
-router.post('/deposito', soloCuentaPropia, cuentaController.depositar);
-router.post('/retiro', soloCuentaPropia, cuentaController.retirar);
-router.post('/transferencia', soloCuentaPropia, cuentaController.transferir);
-router.get('/:id/historial', soloCuentaPropia, cuentaController.obtenerHistorial);
-router.get('/:id', soloCuentaPropia, cuentaController.obtenerCuenta);
+router.post('/deposito', soloCuentaPropia('body', 'cuenta'), cuentaController.depositar);
+router.post('/retiro', soloCuentaPropia('body', 'cuenta'), cuentaController.retirar);
+router.post('/transferencia', soloCuentaPropia('body', 'cuentaOrigen'), cuentaController.transferir);
+router.get('/:id/historial', soloCuentaPropia('params', 'id'), cuentaController.obtenerHistorial);
+router.get('/:id', soloCuentaPropia('params', 'id'), cuentaController.obtenerCuenta);
 
 module.exports = router;
