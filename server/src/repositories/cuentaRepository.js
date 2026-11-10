@@ -12,6 +12,11 @@ async function buscarPorIdentificador(id, session) {
   return Cuenta.findById(id).session(session || null);
 }
 
+// Para el login: incluye pinHash, que normalmente no se consulta.
+function buscarPorUsuario(usuario) {
+  return Cuenta.findOne({ usuario }).select('+pinHash');
+}
+
 async function buscarPorNumero(numero, session) {
   return Cuenta.findOne({ numero }).session(session || null);
 }
@@ -37,4 +42,4 @@ function guardarCuenta(datos) {
   });
 }
 
-module.exports = { buscarPorIdentificador, buscarPorNumero, actualizarSaldo, guardarCuenta };
+module.exports = { buscarPorIdentificador, buscarPorUsuario, buscarPorNumero, actualizarSaldo, guardarCuenta };
