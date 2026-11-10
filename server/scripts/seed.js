@@ -7,13 +7,14 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const cuentaRepository = require('../src/repositories/cuentaRepository');
+const { hashearPin } = require('../src/services/authService');
 const movimientoRepository = require('../src/repositories/movimientoRepository');
 
 const cuentas = [
-  { numero: '001-0001', titular: 'Ana Torres', saldo: 1500 },
-  { numero: '001-0002', titular: 'Luis Ramirez', saldo: 800.5 },
-  { numero: '001-0003', titular: 'Carla Mendoza', saldo: 2500 },
-  { numero: '001-0004', titular: 'Jorge Quispe', saldo: 120 },
+  { numero: '001-0001', titular: 'Ana Torres', saldo: 1500, usuario: 'ana', pin: '1111' },
+  { numero: '001-0002', titular: 'Luis Ramirez', saldo: 800.5, usuario: 'luis', pin: '2222' },
+  { numero: '001-0003', titular: 'Carla Mendoza', saldo: 2500, usuario: 'carla', pin: '3333' },
+  { numero: '001-0004', titular: 'Jorge Quispe', saldo: 120, usuario: 'jorge', pin: '4444' },
 ];
 
 function haceDias(dias) {
@@ -35,12 +36,13 @@ async function seed() {
 
   await movimientoRepository.eliminarPorCuentas(cuentas.map((c) => c.numero));
   for (const cuenta of cuentas) {
-    await cuentaRepository.guardarCuenta(cuenta);
+    const { pin, ...datos } = cuenta;
+    await cuentaRepository.guardarCuenta({ ...datos, pinHash: hashearPin(pin) });
   }
   await movimientoRepository.insertarVarios(movimientos);
 
   console.log(`Seed completado: ${cuentas.length} cuentas y ${movimientos.length} movimientos.`);
-  cuentas.forEach((c) => console.log(` - ${c.numero}  ${c.titular}  S/ ${c.saldo}`));
+  cuentas.forEach((c) => console.log(` - ${c.numero}  ${c.titular}  S/ ${c.saldo}  usuario: ${c.usuario}  PIN: ${c.pin}`));
 }
 
 seed()
