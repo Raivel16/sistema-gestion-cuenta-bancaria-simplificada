@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import CampoMonto from './CampoMonto'
 
 // Formulario de transferencia. El padre recibe (cuentaDestino, monto) mediante onSubmit.
 function FormTransferencia({ cuentaOrigen, onSubmit, procesando, deshabilitado }) {
@@ -29,17 +30,9 @@ function FormTransferencia({ cuentaOrigen, onSubmit, procesando, deshabilitado }
     }
   }
 
-  const clasesInput =
-    'mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200'
-
   return (
-    <form onSubmit={manejarEnvio} className="rounded-2xl bg-white p-6 shadow" noValidate>
-      <h2 className="text-lg font-bold text-slate-800">Transferir dinero</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        Desde la cuenta <strong>{cuentaOrigen}</strong>
-      </p>
-
-      <label htmlFor="cuenta-destino" className="mt-4 block text-sm font-medium text-slate-700">
+    <form onSubmit={manejarEnvio} noValidate>
+      <label htmlFor="cuenta-destino" className="block text-sm font-medium text-tinta">
         Cuenta de destino
       </label>
       <input
@@ -48,31 +41,22 @@ function FormTransferencia({ cuentaOrigen, onSubmit, procesando, deshabilitado }
         value={destino}
         onChange={(e) => setDestino(e.target.value)}
         placeholder="Ej. 001-0002"
-        className={clasesInput}
+        className="mt-1 mb-4 w-full rounded-lg border border-linea bg-white px-4 py-3 text-lg text-tinta placeholder-suave focus:border-acento focus:ring-2 focus:ring-acento-claro focus:outline-none"
       />
 
-      <label htmlFor="monto-transferencia" className="mt-4 block text-sm font-medium text-slate-700">
-        Monto (S/)
-      </label>
-      <input
-        id="monto-transferencia"
-        type="number"
-        inputMode="decimal"
-        step="0.01"
-        min="0"
-        value={monto}
-        onChange={(e) => setMonto(e.target.value)}
-        placeholder="0.00"
-        className={clasesInput}
-      />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      <CampoMonto id="monto-transferencia" valor={monto} onCambio={setMonto} />
+      {error && (
+        <p role="alert" className="mt-2 text-sm font-medium text-egreso">
+          {error}
+        </p>
+      )}
 
       <button
         type="submit"
         disabled={procesando || deshabilitado}
-        className="mt-4 w-full rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-5 w-full rounded-lg bg-acento px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-acento-osc disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {procesando ? 'Procesando...' : 'Transferir'}
+        {procesando ? 'Procesando…' : 'Confirmar transferencia'}
       </button>
     </form>
   )
