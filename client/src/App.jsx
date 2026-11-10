@@ -177,12 +177,13 @@ function App() {
             {vista === 'transferencia' ? (
               <FormTransferencia
                 cuentaOrigen={cuentaActiva}
+                saldo={cuenta?.saldo}
                 onSubmit={manejarTransferencia}
                 procesando={procesando}
                 deshabilitado={!cuenta}
               />
             ) : (
-              <FormOperacion tipo={vista} onSubmit={manejarOperacion} procesando={procesando} deshabilitado={!cuenta} />
+              <FormOperacion tipo={vista} saldo={cuenta?.saldo} onSubmit={manejarOperacion} procesando={procesando} deshabilitado={!cuenta} />
             )}
           </PantallaOperacion>
         )}

@@ -5,7 +5,7 @@ import * as api from '../services/api'
 
 // Transferencia en dos pasos: 1) datos y 2) confirmación mostrando el titular del destino.
 // El padre recibe (cuentaDestino, monto) mediante onSubmit.
-function FormTransferencia({ cuentaOrigen, onSubmit, procesando, deshabilitado }) {
+function FormTransferencia({ cuentaOrigen, saldo, onSubmit, procesando, deshabilitado }) {
   const [destino, setDestino] = useState('')
   const [monto, setMonto] = useState('')
   const [error, setError] = useState('')
@@ -27,6 +27,10 @@ function FormTransferencia({ cuentaOrigen, onSubmit, procesando, deshabilitado }
     }
     if (monto === '' || !Number.isFinite(valor) || valor <= 0) {
       setError('Ingrese un monto numérico mayor que cero.')
+      return
+    }
+    if (valor > saldo) {
+      setError('Saldo insuficiente para esta transferencia.')
       return
     }
     setError('')

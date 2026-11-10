@@ -2,7 +2,7 @@ import { useState } from 'react'
 import CampoMonto from './CampoMonto'
 
 // Formulario de depósito o retiro según la prop "tipo". El padre recibe (tipo, monto) en onSubmit.
-function FormOperacion({ tipo, onSubmit, procesando, deshabilitado }) {
+function FormOperacion({ tipo, saldo, onSubmit, procesando, deshabilitado }) {
   const [monto, setMonto] = useState('')
   const [error, setError] = useState('')
 
@@ -13,6 +13,10 @@ function FormOperacion({ tipo, onSubmit, procesando, deshabilitado }) {
     const valor = Number(monto)
     if (monto === '' || !Number.isFinite(valor) || valor <= 0) {
       setError('Ingrese un monto numérico mayor que cero.')
+      return
+    }
+    if (tipo === 'retiro' && valor > saldo) {
+      setError('Saldo insuficiente para este retiro.')
       return
     }
     setError('')
